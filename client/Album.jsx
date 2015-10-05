@@ -16,17 +16,15 @@ Album=React.createClass({
 
     var newRating = React.findDOMNode(this.refs.ratingInput).value.trim();
     var albumId = this.props.album._id;
+      console.log("rate this row" + newRating);
+      console.log("albumid = " + albumId);
 
-    // check for return key
-    if(event.keyCode == "13" || event.currentTarget.nodeName == "BUTTON") {
-      if(this.props.album.rating !== newRating );
-      console.log("rating changed to" + rewRating);
+    if(this.props.album.rating !== newRating ) {
+      console.log("rating changed to " + newRating);
+      Albums.update(this.props.album._id, {
+        $set: { rating: newRating }
+      });
     }
-
-
-    /*Albums.update(this.props.album._id, {
-      $set: { rating: newRating }
-    })*/
   },
   render() {
     return(
