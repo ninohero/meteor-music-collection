@@ -9,17 +9,10 @@ App = React.createClass({
   },
   getInitialState() {
     return {
-      something: "some value"
+      errorMessageSearch: "",
+      searchBy: "artist"
     }
   },
-  /*getAlbums() {
-    return [
-      { _id: 10001, title: "Kind of Blue", artist: "Miles Davis", media: "cd", label_year: "Columbia / '54", price: 12.00, date_acquired: new Date(9/2/2005)},
-      date_added,
-      rating
-    ]
-  },
-  */
   renderAlbums() {
     // the data object is returned from getMeteorData?
     return this.data.albums.map((album) => {
@@ -72,19 +65,71 @@ App = React.createClass({
       artist: artist,
       date_added: new Date(),
       added_by_user_id: Meteor.user().username
-    })
+    });
 
     // clear field after value added
     React.findDOMNode(this.refs.titleInput).value = "";
     React.findDOMNode(this.refs.artistInput).value = "";
   },
+  getFilterBy(opt) {
+    switch(opt) {
+      case "byAlbum":
+        this.setState({ searchBy: "title" });
+        break;
+      case "byLabel":
+        this.setState({ searchBy: "label_year" });
+        break;
+      default:
+        this.setState({ searchBy: "artist" });
+    }
+  },
+  handleSearch(event) {
+    _this = this;
+    event.preventDefault();
+
+    var searchTerm = React.findDOMNode(this.refs.searchInput).value.trim();
+    var searchBy = this.state.searchBy;
+    var newSearchTerm = "";
+
+    if(searchTerm == "") {
+      this.setState({ errorMessageSearch: "Please enter a search term" });
+    } else {
+      //{ $regex : '.*'+searchTerm+'.*', $options:"i" }
+      var pattern =  new RegExp('/.*'+searchTerm+'.*/',i);
+      Albums.find({ "artist": { $regex : pattern } }, {sort: {title: 1}}).fetch();
+      //var results = Albums.find({ "artist": { $regex : pattern, $options:"i" } }, {sort: {title: 1}}).fetch();
+      console.log("results: ")
+      console.log(Albums.find({ "artist": { $regex : pattern, $options:"i" } }, {sort: {title: 1}}).fetch());
+    }
+  },
+  handleSearchFocus() {
+    React.findDOMNode(this.refs.searchInput).value = "";
+  },
   render() {
     return (
       <div className="album_holder">
         <header>
-          <h1>Album Rater</h1>
+          <h1 className="mainHeader">Album Rater</h1>
 
           <AccountsUIWarapper />
+
+            <form className="searchForm" onSubmit={this.handleSearch}>
+              <label htmlFor="search" className="cell">Search</label>
+              <input type="text"
+                     name="search"
+                     className="cell"
+                     ref="searchInput"
+                     onFocus={this.handleSearchFocus}
+                     placeholder="Search Term" />
+              <select name="searchType" ref="searchSelect" className="cell">
+                <option value="byArtist">by artist</option>
+                <option value="byAlbum">by album</option>
+                <option value="byLabel">by label</option>
+              </select>
+              {this.state.errorMessageSearch}
+              <button className="cell"
+                      onClick={this.handleSearch}>Search</button>
+            </form>
 
           { this.data.currentUser ?
             <form className="new-album" onSubmit={this.handleAddSubmit}>
