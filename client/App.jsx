@@ -1,16 +1,16 @@
 App = React.createClass({
   // this is the meteor mixin that connects to Meteor-mongo, I think
   mixins: [ReactMeteorData],
-  getMeteorData() {
-    return {
-      albums: Albums.find({}, {sort: {date_added: -1}, limit: 25}).fetch(),
-      currentUser: Meteor.user()
-    }
-  },
   getInitialState() {
     return {
       errorMessageSearch: "",
       searchBy: "artist"
+    }
+  },
+  getMeteorData() {
+    return {
+      albums: Albums.find({}, {fields: {_id: 1, title: 1, artist: 1, media: 1, rating: 1}, sort: {date_added: -1}, limit: 25}).fetch(),
+      currentUser: Meteor.user()
     }
   },
   renderAlbums() {
@@ -29,18 +29,6 @@ App = React.createClass({
     }
     return true;
   },
-  /*handleKeyUp(event) {
-    console.log("keycode = "+event.keyCode);
-
-    // check for return key
-    if(event.keyCode == "13") {
-      var fieldCheck = this.validateRequiredTextFields();
-
-      if(fieldCheck) {
-        this.handleAddSubmit();
-      }
-    }
-  },*/
   handleAddSubmit(event) {
     if(event.preventDefault) {
       event.preventDefault();
@@ -94,18 +82,16 @@ App = React.createClass({
     if(searchTerm == "") {
       this.setState({ errorMessageSearch: "Please enter a search term" });
     } else {
-      //{ $regex : '.*'+searchTerm+'.*', $options:"i" }
-      var pattern =  new RegExp('/.*'+searchTerm+'.*/',i);
+      var pattern =  RegExp('.*'+searchTerm+'.*','i');
       Albums.find({ "artist": { $regex : pattern } }, {sort: {title: 1}}).fetch();
-      //var results = Albums.find({ "artist": { $regex : pattern, $options:"i" } }, {sort: {title: 1}}).fetch();
-      console.log("results: ")
-      console.log(Albums.find({ "artist": { $regex : pattern, $options:"i" } }, {sort: {title: 1}}).fetch());
+      console.log(Albums.find({ "artist": { $regex : pattern } }, {sort: {title: 1}}).fetch());
     }
   },
   handleSearchFocus() {
     React.findDOMNode(this.refs.searchInput).value = "";
   },
   render() {
+    console.log(this.data.albums);
     return (
       <div className="album_holder">
         <header>
@@ -153,7 +139,8 @@ App = React.createClass({
         </header>
 
         <ul>
-          {this.renderAlbums()}
+          { this.renderAlbums() }
+          {/*}<Albums albums={this.data.albums} />*/ }
         </ul>
       </div>
     );
